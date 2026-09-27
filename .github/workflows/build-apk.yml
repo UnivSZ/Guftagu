@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      api_url:
+        description: 'Custom API Base URL (e.g. http://192.168.1.5:3000/api/v1)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build-apk:
@@ -38,17 +44,45 @@ jobs:
         working-directory: apps/mobile
         run: flutter analyze --no-fatal-warnings --no-fatal-infos || true
 
-      - name: Build Debug APK
-        working-directory: apps/mobile
-        run: flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
+      - name: Resolve API URL
+        id: api_url
+        run: |
+          if [ -n "${{ inputs.api_url }}" ]; then
+            echo "url=${{ inputs.api_url }}" >> $GITHUB_OUTPUT
+            echo "Using custom API URL: ${{ inputs.api_url }}"
+          else
+            echo "url=" >> $GITHUB_OUTPUT
+            echo "Using default URLs from workflow"
+          fi
 
-      - name: Build Release APK
+      - name: Build Debug APK (custom or default)
         working-directory: apps/mobile
-        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.guftagu.example.com/api/v1
+        run: |
+          if [ -n "${{ steps.api_url.outputs.url }}" ]; then
+            echo "Building with custom API: ${{ steps.api_url.outputs.url }}"
+            flutter build apk --debug --dart-define=API_BASE_URL=${{ steps.api_url.outputs.url }}
+          else
+            flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
+          fi
 
-      - name: Build AAB
+      - name: Build Release APK (custom or default)
         working-directory: apps/mobile
-        run: flutter build appbundle --release --dart-define=API_BASE_URL=https://api.guftagu.example.com/api/v1
+        run: |
+          if [ -n "${{ steps.api_url.outputs.url }}" ]; then
+            echo "Building release with custom API: ${{ steps.api_url.outputs.url }}"
+            flutter build apk --release --dart-define=API_BASE_URL=${{ steps.api_url.outputs.url }}
+          else
+            flutter build apk --release --dart-define=API_BASE_URL=https://api.guftagu.example.com/api/v1
+          fi
+
+      - name: Build AAB (custom or default)
+        working-directory: apps/mobile
+        run: |
+          if [ -n "${{ steps.api_url.outputs.url }}" ]; then
+            flutter build appbundle --release --dart-define=API_BASE_URL=${{ steps.api_url.outputs.url }}
+          else
+            flutter build appbundle --release --dart-define=API_BASE_URL=https://api.guftagu.example.com/api/v1
+          fi
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
