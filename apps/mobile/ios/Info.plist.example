@@ -1,0 +1,23 @@
+<key>CFBundleIdentifier</key>
+<string>com.ruhikreguftagu.saad</string>
+<key>CFBundleDisplayName</key>
+<string>Guftagu</string>
+<key>CFBundleName</key>
+<string>Guftagu</string>
+<key>NSCameraUsageDescription</key>
+<string>Take photos to share in chats and group spaces</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Record voice messages and make audio/video calls</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Share photos from your library in chats</string>
+<key>UIBackgroundModes</key>
+<array>
+  <string>audio</string>
+  <string>voip</string>
+  <string>remote-notification</string>
+  <string>fetch</string>
+</array>
+<key>ITSAppUsesNonExemptEncryption</key>
+<false/>
+<!-- Push capability via Xcode, APNs via FCM -->
+<!-- Privacy manifest: PrivacyInfo.xcprivacy required for iOS 17+ -->
