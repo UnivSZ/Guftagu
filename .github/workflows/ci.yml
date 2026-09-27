@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  api-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: guftagu
+          POSTGRES_PASSWORD: guftagu
+          POSTGRES_DB: guftagu
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+        working-directory: services/api
+      - run: npx prisma generate
+        working-directory: services/api
+      - run: npx prisma migrate deploy
+        working-directory: services/api
+        env:
+          DATABASE_URL: postgresql://guftagu:guftagu@localhost:5432/guftagu
+      - run: npm test
+        working-directory: services/api
+        env:
+          DATABASE_URL: postgresql://guftagu:guftagu@localhost:5432/guftagu
+          JWT_ACCESS_SECRET: test-access-secret-32-chars-long
+          JWT_REFRESH_SECRET: test-refresh-secret-32-chars-long
+          ALLOW_DEV_AUTH: 'true'
+
+  mobile-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - run: flutter pub get
+        working-directory: apps/mobile
+      - run: flutter analyze
+        working-directory: apps/mobile
+      - run: flutter test
+        working-directory: apps/mobile
