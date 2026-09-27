@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/theme.dart';
 import 'core/router/app_router.dart';
-import 'core/storage/secure_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
